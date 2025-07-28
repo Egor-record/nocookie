@@ -16,14 +16,15 @@ export class Tracker {
     this.db = db
   }
   
-  async addVisitor(location: string, pageUrl: string, id: number, db: Db) {
+  async addVisitor(location: string, pageUrl: string, trackerId: number, sessionId: number, db: Db) {
     const visitorsCollection = db.collection<Visitor>('Visitors');
     
     const visitor: VisitorData = {
       date: new Date(),
       location,
       pageUrl,
-      trackerId: id,
+      trackerId,
+      sessionId
     };
     await visitorsCollection.insertOne(visitor);
   }

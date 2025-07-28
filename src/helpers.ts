@@ -22,6 +22,7 @@ export async function generateBlackDotPNG(): Promise<Buffer> {
 export async function handleWatchTracking(
     trackerManager: TrackerManager,
     id: number,
+    sessionId: number,
     pageName: string,
     location: string
   ): Promise<void> {
@@ -34,6 +35,6 @@ export async function handleWatchTracking(
     }
     
     if (tracker) {
-     await tracker.addVisitor(location.toString(), pageName, +id, db);
+     await tracker.addVisitor(location.toString(), pageName, +id, +sessionId, db);
     }
 }

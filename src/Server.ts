@@ -16,6 +16,7 @@ export class Server {
   private async isWatchTracker(req: IncomingMessage, res: ServerResponse): boolean {
     const url = parse(req.url || '', true);
     const parts = url.pathname?.split('/').filter(Boolean);
+    const sessionId = url.query.sessionId;
 
     if (parts?.[0] === 'watch' && parts.length === 3) {
         try {
@@ -26,7 +27,7 @@ export class Server {
 
             const location = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
 
-            await handleWatchTracking(this.trackerManager, +id, pageName, location);
+            await handleWatchTracking(this.trackerManager, +id, +sessionId, pageName, location);
       
             res.writeHead(200, {
               'Content-Type': 'image/png',

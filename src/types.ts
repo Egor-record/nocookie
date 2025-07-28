@@ -3,6 +3,7 @@ export type VisitorData = {
     location: string;
     pageUrl: string;
     trackerId: number;
+    sessionId: number;
 };
 
 export interface TrackerData {
