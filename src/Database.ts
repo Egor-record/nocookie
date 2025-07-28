@@ -1,40 +1,39 @@
-import { MongoClient } from 'mongodb';
-import { MongoClient, ServerApiVersion } from ('mongodb');
+import { MongoClient, ServerApiVersion, Db } from 'mongodb';
 
 export class Database {
-  private readonly uri: string;
-  private client: MongoClient;
+    private readonly uri: string;
+    private client: MongoClient;
+    private db: Db;
 
-  constructor() {
-    this.uri = process.env.MONGO_URI
-    this.client = new MongoClient(uri, {
-        serverApi: {
-          version: ServerApiVersion.v1,
-          strict: true,
-          deprecationErrors: true,
-        }
-    });
-  }
-
-  public async run(): Promise<void> {
-    try {
-      await this.client.connect();
-      // Send a ping to confirm a successful connection
-      await client.db("admin").command({ ping: 1 });
-      console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } catch (error) {
-      console.error('❌ MongoDB connection failed:', error);
-    } finally {
-        await this.client.close();
+    constructor() {
+        this.uri = process.env.MONGO_URI
+        this.client = new MongoClient(this.uri, {
+            serverApi: {
+                version: ServerApiVersion.v1,
+                strict: true,
+                deprecationErrors: true,
+            }
+        });
     }
-  }
 
-  public getClient(): MongoClient {
-    return this.client;
-  }
+    public async run(): Promise<void> {
+        try {
+            await this.client.connect()
+            await this.client.db("NotCookie").command({ ping: 1 })
+            console.log("Pinged your deployment. You successfully connected to MongoDB!")
+            this.db = this.client.db("NotCookie")
+        } catch (error) {
+            console.error('❌ MongoDB connection failed:', error);
+        }
+    }
 
-  public async close(): Promise<void> {
-    await this.client.close();
-    console.log('🔌 MongoDB connection closed');
-  }
+    getDataBase(): MongoClient {
+        if (!this.client) throw new Error('Database not connected. Call run() first.');
+        return this.db;
+    }
+
+    public async close(): Promise<void> {
+        await this.client.close();
+        console.log('🔌 MongoDB connection closed');
+    }
 }

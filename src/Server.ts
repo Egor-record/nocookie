@@ -1,14 +1,16 @@
 import http, { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
-import { generateBlackDotPNG } from './helpers'
-import { TrackerManager } from './TrackerManager';
+import { generateBlackDotPNG, handleWatchTracking } from './helpers'
+import { TrackerManager } from './Models/TrackerManager';
 
 export class Server {
   private port: number;
-  private trackerManager = new TrackerManager();
+  private trackerManager: TrackerManager;
 
-  constructor(port: number) {
+  constructor(port: number, db: Database) {
     this.port = port;
+    this.db = db;
+    this.trackerManager = new TrackerManager(db);
   }
 
   private async isWatchTracker(req: IncomingMessage, res: ServerResponse): boolean {
@@ -23,8 +25,8 @@ export class Server {
             const buffer = await generateBlackDotPNG();
 
             const location = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
-            const tracker = this.trackerManager.getOrCreateTracker(id);
-            tracker.addVisitor(location.toString(), pageName);
+
+            await handleWatchTracking(this.trackerManager, +id, pageName, location);
       
             res.writeHead(200, {
               'Content-Type': 'image/png',
@@ -47,13 +49,12 @@ export class Server {
       const handledByTracker = await this.isWatchTracker(req, res);
       if (!handledByTracker) {
         res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('Hello from custom Server class!');
+        res.end('Main Page');
       }
-      console.dir(this.trackerManager.getAllTrackers(), { depth: null });
     });
 
     server.listen(this.port, () => {
-      console.log(`Server is listening on port ${this.port}`);
+      console.log(`Server is listening on http://localhost:${this.port}`);
     });
   }
 }
