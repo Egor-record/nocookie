@@ -4,29 +4,27 @@ import { Db } from 'mongodb';
   
 export class Tracker {
 
-  public id: string;
   public name: string;
   public userId: string;
   public createdAt: Date;
+  public db: Db
 
   constructor(data: TrackerData, db) {
-    this.id = data.id;
     this.name = data.name;
     this.userId = data.userId;
     this.createdAt = data.createdAt;
+    this.db = db
   }
   
-  async addVisitor(location: string, pageUrl: string, db: Db) {
-    const db = Database.getClient();
+  async addVisitor(location: string, pageUrl: string, id: number, db: Db) {
     const visitorsCollection = db.collection<Visitor>('Visitors');
-
-    const visitor: Visitor = {
+    
+    const visitor: VisitorData = {
       date: new Date(),
       location,
       pageUrl,
-      trackerId: this.id,
+      trackerId: id,
     };
-
     await visitorsCollection.insertOne(visitor);
   }
   

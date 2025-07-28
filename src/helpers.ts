@@ -26,14 +26,14 @@ export async function handleWatchTracking(
     location: string
   ): Promise<void> {
     let tracker: Tracker | null = null;
+    const db = trackerManager.db  
     try {
-      const db = trackerManager.db  
       tracker = await trackerManager.getTracker(id);
     } catch (error) {
       console.error('Failed to get tracker:', error);
     }
     
     if (tracker) {
-      await tracker.addVisitor(location.toString(), pageName, db);
+     await tracker.addVisitor(location.toString(), pageName, +id, db);
     }
 }

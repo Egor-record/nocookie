@@ -2,12 +2,12 @@ export type VisitorData = {
     date: Date;
     location: string;
     pageUrl: string;
-    trackerId: string;
+    trackerId: number;
 };
 
 export interface TrackerData {
-    id: string;
     name: string;
     userId: string;
     createdAt: Date;
+    trackerId: number
 }

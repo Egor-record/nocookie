@@ -1,39 +1,42 @@
 import { Tracker } from './Tracker';
 import { Database } from '../Database';
+import { TrackerData } from '../types'
 
 export class TrackerManager { 
   constructor(public db: Database) {
-    this.db = db.getDataBase().collection('Trackers')
+    this.db = db.getDataBase()
+    this.collection = this.db.collection('Trackers')
   }
 
   public async getTracker(trackerId: number): Promise<Tracker> {
-    const trackerDoc = await this.db.findOne({ "tracker": trackerId });
+    const trackerDoc = await this.collection.findOne({ "trackerId": trackerId });
     if (!trackerDoc) {
       throw new Error(`Tracker with id ${trackerId} not found`);
     }
-    return new Tracker(trackerDoc);
+    return new Tracker(trackerDoc, this.db);
   }
 
-  public async createTracker(id: string, name: string, userId: string): Promise<Tracker> {
-    const trackerDoc = await this.db.findOne({ id });
+  public async createTracker(trackerId: string, name: string, userId: string): Promise<Tracker> {
+    const trackerDoc = await this.collection.findOne({ trackerId });
     let trackerData: TrackerData;
+
     if (trackerDoc) {
       trackerData = {
-        id: trackerDoc.id,
         name: trackerDoc.name,
         userId: trackerDoc.userId,
-        createdAt: trackerDoc.createdAt,
+        createdAt: new Date(trackerDoc.createdAt),
+        trackerId: trackerDoc.trackerId
       };
     } else {
       trackerData = {
-        id,
         name,
         userId,
         createdAt: new Date(),
+        trackerId: Number(id)
       };
-  
-      await db.collection('trackers').insertOne(trackerData);
     }
+  
+    await this.collection.insertOne(trackerData);
   
     return new Tracker(trackerData);
   }
