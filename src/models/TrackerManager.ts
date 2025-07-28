@@ -40,8 +40,4 @@ export class TrackerManager {
   
     return new Tracker(trackerData);
   }
-
-  getAllTrackers() {
-    return [...this.trackers.values()];
-  }
 }
