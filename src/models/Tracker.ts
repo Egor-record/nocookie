@@ -1,4 +1,4 @@
-import { VisitorData } from './types'
+import { VisitorData, TrackerData } from '../types'
 import { Database } from '../Database';
 import { Db } from 'mongodb';
   
@@ -9,7 +9,7 @@ export class Tracker {
   public createdAt: Date;
   public db: Db
 
-  constructor(data: TrackerData, db) {
+  constructor(data: TrackerData, db: Db) {
     this.name = data.name;
     this.userId = data.userId;
     this.createdAt = data.createdAt;
@@ -17,7 +17,7 @@ export class Tracker {
   }
   
   async addVisitor(location: string, pageUrl: string, trackerId: number, sessionId: number, db: Db) {
-    const visitorsCollection = db.collection<Visitor>('Visitors');
+    const visitorsCollection = db.collection<VisitorData>('Visitors');
     
     const visitor: VisitorData = {
       date: new Date(),
@@ -27,9 +27,5 @@ export class Tracker {
       sessionId
     };
     await visitorsCollection.insertOne(visitor);
-  }
-  
-  getVisitors() {
-      return this.visitors;
   }
 }

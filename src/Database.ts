@@ -3,10 +3,10 @@ import { MongoClient, ServerApiVersion, Db } from 'mongodb';
 export class Database {
     private readonly uri: string;
     private client: MongoClient;
-    private db: Db;
+    private db: Db | null;
 
     constructor() {
-        this.uri = process.env.MONGO_URI
+        this.uri = process.env.MONGO_URI || '';
         this.client = new MongoClient(this.uri, {
             serverApi: {
                 version: ServerApiVersion.v1,
@@ -14,6 +14,7 @@ export class Database {
                 deprecationErrors: true,
             }
         });
+        this.db = null
     }
 
     public async run(): Promise<void> {
@@ -27,8 +28,8 @@ export class Database {
         }
     }
 
-    getDataBase(): MongoClient {
-        if (!this.client) throw new Error('Database not connected. Call run() first.');
+    getDataBase(): Db {
+        if (!this.db) throw new Error('Database not connected. Call run() first.');
         return this.db;
     }
 

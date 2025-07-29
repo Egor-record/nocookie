@@ -1,6 +1,7 @@
 import { PNG } from 'pngjs';
 import { Buffer } from 'buffer';
 import { TrackerManager } from './models/TrackerManager'
+import { Tracker } from './models/Tracker'
 
 export async function generateBlackDotPNG(): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -27,7 +28,7 @@ export async function handleWatchTracking(
     location: string
   ): Promise<void> {
     let tracker: Tracker | null = null;
-    const db = trackerManager.db  
+    const db = trackerManager.db
     try {
       tracker = await trackerManager.getTracker(id);
     } catch (error) {

@@ -1,11 +1,15 @@
 import { Tracker } from './Tracker';
 import { Database } from '../Database';
 import { TrackerData } from '../types'
+import { Collection, Db } from 'mongodb';
 
 export class TrackerManager { 
-  constructor(public db: Database) {
-    this.db = db.getDataBase()
-    this.collection = this.db.collection('Trackers')
+  private collection: Collection<TrackerData>;
+  private _db: Db;
+
+  constructor(public database: Database) {
+    this._db = database.getDataBase()
+    this.collection = this._db.collection('Trackers')
   }
 
   public async getTracker(trackerId: number): Promise<Tracker> {
@@ -16,7 +20,7 @@ export class TrackerManager {
     return new Tracker(trackerDoc, this.db);
   }
 
-  public async createTracker(trackerId: string, name: string, userId: string): Promise<Tracker> {
+  public async createTracker(trackerId: number, name: string, userId: string): Promise<Tracker> {
     const trackerDoc = await this.collection.findOne({ trackerId });
     let trackerData: TrackerData;
 
@@ -32,12 +36,16 @@ export class TrackerManager {
         name,
         userId,
         createdAt: new Date(),
-        trackerId: Number(id)
+        trackerId
       };
     }
   
     await this.collection.insertOne(trackerData);
   
-    return new Tracker(trackerData);
+    return new Tracker(trackerData, this.db);
+  }
+
+  public get db(): Db {
+    return this._db;
   }
 }

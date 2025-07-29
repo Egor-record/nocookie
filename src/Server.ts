@@ -1,11 +1,13 @@
 import http, { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
 import { generateBlackDotPNG, handleWatchTracking } from './helpers'
-import { TrackerManager } from './Models/TrackerManager';
+import { Database } from './Database'
+import { TrackerManager } from './models/TrackerManager'
 
 export class Server {
   private port: number;
   private trackerManager: TrackerManager;
+  public db: Database
 
   constructor(port: number, db: Database) {
     this.port = port;
@@ -13,10 +15,10 @@ export class Server {
     this.trackerManager = new TrackerManager(db);
   }
 
-  private async isWatchTracker(req: IncomingMessage, res: ServerResponse): boolean {
+  private async isWatchTracker(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
     const url = parse(req.url || '', true);
     const parts = url.pathname?.split('/').filter(Boolean);
-    const sessionId = url.query.sessionId;
+    const sessionId = url.query.sessionId || 0;
 
     if (parts?.[0] === 'watch' && parts.length === 3) {
         try {
@@ -27,7 +29,7 @@ export class Server {
 
             const location = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
 
-            await handleWatchTracking(this.trackerManager, +id, +sessionId, pageName, location);
+            await handleWatchTracking(this.trackerManager, +id, +sessionId, pageName, location.toString());
       
             res.writeHead(200, {
               'Content-Type': 'image/png',
