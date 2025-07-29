@@ -18,7 +18,8 @@ export class Server {
   private async isWatchTracker(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
     const url = parse(req.url || '', true);
     const parts = url.pathname?.split('/').filter(Boolean);
-    const sessionId = url.query.sessionId || 0;
+    const sessionIdRaw = url.query.sessionId;
+    const sessionId = isNaN(Number(sessionIdRaw)) ? 0 : Number(sessionIdRaw)
 
     if (parts?.[0] === 'watch' && parts.length === 3) {
         try {
