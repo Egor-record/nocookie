@@ -1,9 +1,9 @@
 import http, { IncomingMessage, ServerResponse } from 'http';
-import geoip from 'geoip-lite';
-import { generateBlackDotPNG, handleWatchTracking } from './helpers'
+
+import { generateBlackDotPNG, handleWatchTracking, getLocation } from './helpers'
 import { Database } from './Database'
 import { TrackerManager } from './models/TrackerManager'
-import { ParsedTrackerUrl, UserLocation } from './types'
+import { ParsedTrackerUrl } from './types'
 
 
 export class Server {
@@ -45,32 +45,18 @@ export class Server {
                 res.end('Main Page');
                 return
             }
-            let location: UserLocation = {
-                city: '',
-                country: ''
-            };
-            const { trackerId, pageName, sessionId } = parsedRequest;          
-            const forwarded = req.headers['x-forwarded-for'] as string | undefined;
-            const ip = typeof forwarded === 'string'
-            ? forwarded.split(',')[0].trim()
-            : req.socket.remoteAddress;
-
-            const geo = geoip.lookup(ip || '');
-
-            if (geo) {
-                location = {
-                    city: geo.city,
-                    country: geo.country
-                }
-            }
-
+    
+            const { trackerId, pageName, sessionId } = parsedRequest;     
+            const location = getLocation(req);
+            
             try {
                 await handleWatchTracking(
                     this.trackerManager, 
                     Number(trackerId) || 0, 
                     Number(sessionId) || 0, 
                     pageName || "", 
-                    location)
+                    location
+                )
             } catch (e) {
                 console.error(e)
             }
