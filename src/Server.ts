@@ -49,9 +49,13 @@ export class Server {
                 city: '',
                 country: ''
             };
-            const { trackerId, pageName, sessionId } = parsedRequest;
-            const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '') as string;
-            const geo = geoip.lookup(ip);
+            const { trackerId, pageName, sessionId } = parsedRequest;          
+            const forwarded = req.headers['x-forwarded-for'] as string | undefined;
+            const ip = typeof forwarded === 'string'
+            ? forwarded.split(',')[0].trim()
+            : req.socket.remoteAddress;
+
+            const geo = geoip.lookup(ip || '');
 
             if (geo) {
                 location = {
