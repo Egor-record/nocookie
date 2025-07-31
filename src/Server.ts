@@ -1,64 +1,94 @@
 import http, { IncomingMessage, ServerResponse } from 'http';
-import { parse } from 'url';
+import geoip from 'geoip-lite';
 import { generateBlackDotPNG, handleWatchTracking } from './helpers'
 import { Database } from './Database'
 import { TrackerManager } from './models/TrackerManager'
+import { ParsedTrackerUrl, UserLocation } from './types'
+
 
 export class Server {
-  private port: number;
-  private trackerManager: TrackerManager;
-  public db: Database
+    private port: number;
+    private trackerManager: TrackerManager;
+    public db: Database
 
-  constructor(port: number, db: Database) {
-    this.port = port;
-    this.db = db;
-    this.trackerManager = new TrackerManager(db);
-  }
+    constructor(port: number, db: Database) {
+        this.port = port;
+        this.db = db;
+        this.trackerManager = new TrackerManager(db);
+    }
+  
+    private parseURL(req: IncomingMessage) : ParsedTrackerUrl {
+        const host = req.headers.host || 'localhost';
+        const url = new URL(req.url || '', `http://${host}`);
 
-  private async isWatchTracker(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
-    const url = parse(req.url || '', true);
-    const parts = url.pathname?.split('/').filter(Boolean);
-    const sessionIdRaw = url.query.sessionId;
-    const sessionId = isNaN(Number(sessionIdRaw)) ? 0 : Number(sessionIdRaw)
-
-    if (parts?.[0] === 'watch' && parts.length === 3) {
-        try {
-            const id = parts[1];
-            const pageName = parts[2];
-
-            const buffer = await generateBlackDotPNG();
-
-            const location = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
-
-            await handleWatchTracking(this.trackerManager, +id, +sessionId, pageName, location.toString());
-      
-            res.writeHead(200, {
-              'Content-Type': 'image/png',
-              'Content-Length': buffer.length,
-            });
-            res.end(buffer);
-        } catch (err) {
-            console.log(err)
-            res.writeHead(500);
-            res.end('Failed to generate image');
+        const pathnameParts = url.pathname.split('/').filter(Boolean);
+        const sessionId = Number(url.searchParams.get('sessionId')) || 0;
+        if (pathnameParts?.length === 3 && pathnameParts[0] === 'watch') {
+            return {
+                isTrackerRequest: true,
+                trackerId: +pathnameParts[1],
+                pageName: pathnameParts[2],
+                sessionId,
+            };
+        } else {
+            return {
+                isTrackerRequest: false
+            }
         }
-        return true
     }
 
-    return false;
-  }
+    public listen(): void {
+        const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
+            const parsedRequest = this.parseURL(req)
+            if (!parsedRequest.isTrackerRequest) {
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end('Main Page');
+                return
+            }
+            let location: UserLocation = {
+                city: '',
+                country: ''
+            };
+            const { trackerId, pageName, sessionId } = parsedRequest;
+            const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '') as string;
+            const geo = geoip.lookup(ip);
 
-  public listen(): void {
-    const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
-      const handledByTracker = await this.isWatchTracker(req, res);
-      if (!handledByTracker) {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('Main Page');
-      }
-    });
+            if (geo) {
+                location = {
+                    city: geo.city,
+                    country: geo.country
+                }
+            }
 
-    server.listen(this.port, () => {
-      console.log(`Server is listening on http://localhost:${this.port}`);
-    });
+            try {
+                await handleWatchTracking(
+                    this.trackerManager, 
+                    Number(trackerId) || 0, 
+                    Number(sessionId) || 0, 
+                    pageName || "", 
+                    location)
+            } catch (e) {
+                console.error(e)
+            }
+
+            try {
+                const buffer = await generateBlackDotPNG();
+                res.writeHead(200, {
+                    'Content-Type': 'image/png',
+                    'Content-Length': buffer.length,
+                    });
+                res.end(buffer);
+                return
+            } catch (err) {
+                console.error(err)
+                res.writeHead(500);
+                res.end('Failed to generate image');
+                return
+            }
+        });
+
+        server.listen(this.port, () => {
+            console.log(`Server is listening on http://localhost:${this.port}`);
+        });
   }
 }

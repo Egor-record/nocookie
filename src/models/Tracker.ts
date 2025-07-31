@@ -1,9 +1,8 @@
 import { VisitorData, TrackerData } from '../types'
-import { Database } from '../Database';
 import { Db } from 'mongodb';
+import { UserLocation } from '../types'
   
 export class Tracker {
-
   public name: string;
   public userId: string;
   public createdAt: Date;
@@ -16,9 +15,8 @@ export class Tracker {
     this.db = db
   }
   
-  async addVisitor(location: string, pageUrl: string, trackerId: number, sessionId: number, db: Db) {
+  async addVisitor(location: UserLocation, pageUrl: string, trackerId: number, sessionId: number, db: Db) {
     const visitorsCollection = db.collection<VisitorData>('Visitors');
-    
     const visitor: VisitorData = {
       date: new Date(),
       location,

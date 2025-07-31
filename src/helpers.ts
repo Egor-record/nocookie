@@ -2,6 +2,7 @@ import { PNG } from 'pngjs';
 import { Buffer } from 'buffer';
 import { TrackerManager } from './models/TrackerManager'
 import { Tracker } from './models/Tracker'
+import { UserLocation } from './types'
 
 export async function generateBlackDotPNG(): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -10,9 +11,7 @@ export async function generateBlackDotPNG(): Promise<Buffer> {
     png.data[1] = 0;
     png.data[2] = 0;
     png.data[3] = 255;
-
     const chunks: Buffer[] = [];
-
     png.pack()
       .on('data', (chunk) => chunks.push(chunk))
       .on('end', () => resolve(Buffer.concat(chunks)))
@@ -25,7 +24,7 @@ export async function handleWatchTracking(
     id: number,
     sessionId: number,
     pageName: string,
-    location: string
+    location: UserLocation
   ): Promise<void> {
     let tracker: Tracker | null = null;
     const db = trackerManager.db
@@ -33,9 +32,8 @@ export async function handleWatchTracking(
       tracker = await trackerManager.getTracker(id);
     } catch (error) {
       console.error('Failed to get tracker:', error);
-    }
-    
+    } 
     if (tracker) {
-     await tracker.addVisitor(location.toString(), pageName, +id, +sessionId, db);
+     await tracker.addVisitor(location, pageName, +id, +sessionId, db);
     }
 }

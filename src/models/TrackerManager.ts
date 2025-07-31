@@ -41,7 +41,6 @@ export class TrackerManager {
     }
   
     await this.collection.insertOne(trackerData);
-  
     return new Tracker(trackerData, this.db);
   }
 
