@@ -23,7 +23,7 @@ export class Server {
 
         const pathnameParts = url.pathname.split('/').filter(Boolean);
         const sessionId = Number(url.searchParams.get('sessionId')) || 0;
-        if (pathnameParts?.length === 3 && pathnameParts[0] === 'watch') {
+        if (pathnameParts?.length === 3 && pathnameParts[0] === 'api') {
             return {
                 isTrackerRequest: true,
                 trackerId: +pathnameParts[1],
