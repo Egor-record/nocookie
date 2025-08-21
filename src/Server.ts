@@ -1,6 +1,6 @@
 import http, { IncomingMessage, ServerResponse } from 'http';
 
-import { generateBlackDotPNG, handleWatchTracking, getLocation } from './helpers'
+import { handleWatchTracking, getLocation } from './helpers'
 import { Database } from './Database'
 import { TrackerManager } from './models/TrackerManager'
 import { ParsedTrackerUrl } from './types'
@@ -61,20 +61,9 @@ export class Server {
                 console.error(e)
             }
 
-            try {
-                const buffer = await generateBlackDotPNG();
-                res.writeHead(200, {
-                    'Content-Type': 'image/png',
-                    'Content-Length': buffer.length,
-                    });
-                res.end(buffer);
-                return
-            } catch (err) {
-                console.error(err)
-                res.writeHead(500);
-                res.end('Failed to generate image');
-                return
-            }
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end('Logged');
+            return
         });
 
         server.listen(this.port, () => {

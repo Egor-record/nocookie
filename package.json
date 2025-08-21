@@ -17,7 +17,6 @@
     "@eslint/js": "^9.32.0",
     "@types/geoip-lite": "^1.4.4",
     "@types/node": "^24.1.0",
-    "@types/pngjs": "^6.0.5",
     "eslint": "^9.32.0",
     "globals": "^16.3.0",
     "jiti": "^2.5.1",
@@ -28,7 +27,6 @@
   "dependencies": {
     "dotenv": "^17.2.1",
     "geoip-lite": "^1.4.10",
-    "mongodb": "^6.18.0",
-    "pngjs": "^7.0.0"
+    "mongodb": "^6.18.0"
   }
 }
